@@ -1,0 +1,172 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+<meta name="viewport"
+       content="
+           height = 100%,width = 100%,initial-scale = 1,minimum-scale = 0.5,
+           maximum-scale = 2,user-scalable = yes,target-densitydpi = high-dpi | medium-dpi | low-dpi"/>
+</head>
+<body>
+    <div id="oDiv"></div>
+	<div id="canvas-color">
+       		<h5>画笔颜色</h5>
+        	<ul>
+            	<li style="background:#fef4ac"></li>
+                <li style="background:#0018ba"></li>
+                <li style="background:#ffc200"></li>
+                <li style="background:#f32f15"></li>
+                <li style="background:#cccccc"></li>
+                <li style="background:#5ab639"></li>
+            </ul>
+        </div>
+        <button type="button" id="btn" style="margin:0 auto">Clear</button>
+    <canvas id="cs">不支持canvas</canvas>
+
+<style type="text/css">
+	#cs{ display:block;margin:0 auto;cursor:crosshair;}
+	#canvas-color ul li{ float:left; display:inherit; width:13px; height:13px;  margin:8px; cursor:pointer;}
+  .select{border:3px #000 solid;}
+</style>
+
+
+<script type="text/javascript">function alt(oldP){alert(oldP.x+","+oldP.y);};
+var len=Math.min(800,$(window).width()-20);var Dn=false;
+var oldP={x:0,y:0};
+var oldT=new Date().getTime();
+var oldW=-1;var LineW=12;
+var mColor="#000";
+//Debug...var oDiv=document.getElementById('oDiv');
+
+
+$('#canvas-color ul li').click(function(){
+  // var list=$('#canvas-color ul li');
+  // for (var i = 0;i<list.length;i++) {
+  //   list.get(i).removeClass("select");
+  // };
+  $('#canvas-color ul li').removeClass("select");
+  $(this).addClass("select");
+mColor = $(this).css('backgroundColor');
+});
+var canvas=document.getElementById('cs');
+canvas.width=canvas.height=len;
+//var 
+ctx=canvas.getContext('2d');
+
+
+   canvas.onmousemove=function(e){
+  e.preventDefault();
+if(Dn)drawTrace(e.clientX,e.clientY);
+};
+
+canvas.onmousedown=function(e){
+e.preventDefault();
+Dn=true;
+
+oldP=win2cvs(e.clientX,e.clientY);
+};
+
+canvas.onmouseup=function(e){
+e.preventDefault();
+Dn=false;
+};
+
+document.onmouseup=function(e){
+Dn=false;
+};
+canvas.addEventListener("touchstart",function(e){
+e.preventDefault();
+touch=e.touches[0];
+Dn=true;
+oldP=win2cvs(e.clientX,e.clientY);
+});
+canvas.addEventListener("touchmove",function(e){
+e.preventDefault();
+touch=e.touches[0];
+if(Dn)drawTrace(touch.pageX,touch.pageY);
+});
+canvas.addEventListener("touchend",function(e){
+e.preventDefault();
+Dn=false;
+});
+drawGride(ctx);
+
+
+$('#btn').click(function(){
+   ctx.clearRect(0,0,len,len);
+   drawGride(ctx);});
+
+function win2cvs(x1,y1){
+   var bbox =canvas.getBoundingClientRect();
+    return { x: x1- bbox.left *(canvas.width / bbox.width),
+
+            y:y1 - bbox.top  * (canvas.height / bbox.height)
+
+            };
+}
+
+
+function drawTrace(x1,y1){
+
+ctx.beginPath();
+var curP=win2cvs(x1,y1);
+var curT=new Date().getTime();
+//ctx.beginPath();
+ctx.moveTo(oldP.x,oldP.y);
+ctx.lineTo(curP.x,curP.y);
+ctx.strokeStyle=mColor;
+var curW=getWidth(getDistance(oldP,curP),curT-oldT);
+ctx.lineWidth=curW;
+ctx.lineCap="round";
+ctx.lineJoin="round";
+ctx.stroke();
+//ctx.closePath();
+
+oldP=curP;
+oldT=curT;oldW=curW;
+}
+function drawGride(ctx){
+ctx.save();
+ctx.beginPath();
+ctx.strokeStyle='rgba(255,0,0,0.25)';
+ctx.lineWidth=6;
+ctx.strokeRect(0,0,len,len);
+
+ctx.moveTo(0,0);
+ctx.lineTo(len,len);
+//ctx.stroke();
+ctx.moveTo(len,0);
+ctx.lineTo(0,len);
+//ctx.stroke();
+ctx.moveTo(len/2,0);
+ctx.lineTo(len/2,len);
+//ctx.stroke();
+ctx.moveTo(0,len/2);
+ctx.lineTo(len,len/2);
+
+ctx.strokeStyle='rgb(255,0,0)';
+ctx.lineWidth=1;
+ctx.stroke();
+ctx.closePath();
+ctx.restore();
+}
+
+
+function getWidth(s,t){
+    if (t==0) {t=10}else if (t>100) {t=100};
+	var v=s/t;
+	var w=LineW;
+	if (v>0.1&&v<1) {w=LineW-(v-0.1)/(10-0.1)*(LineW-1);}
+	if (oldW!=-1) {w= oldW*2/4+w/4};
+
+//Debug...</br>oDiv.innerHTML += Math.round(w)+","+t+"    ";
+	return Math.round(w);
+}
+function getDistance(a,b){
+	return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+}
+</script>
+</body>
+</html>
